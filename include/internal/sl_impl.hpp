@@ -10,6 +10,9 @@ namespace skip_list
 namespace internal
 {
 
+template <typename SkipList> class sl_iterator;
+template <typename SkipList> class sl_const_iterator;
+
 template <typename T>
 class sl_node
 {
@@ -44,7 +47,8 @@ public:
     size_type m_level;
     self_type* m_prev;
     self_type** m_next; // node_type*[m_level + 1]
-};
+
+}; // sl_node
 
 template <typename T,
           typename Compare,
@@ -99,8 +103,16 @@ public:
     allocator_type get_allocator() const { return m_alloc; }
     size_type size() const { return m_size; }
 
-    node_type *front() { return m_head->m_next[0]; }
-    const node_type *front() const { return m_head->m_next[0]; }
+    node_type* front() { return m_head->m_next[0]; }
+    const node_type* front() const { return m_head->m_next[0]; }
+
+    node_type* back() { return m_tail->m_prev; }
+    const node_type* back() const { return m_tail->m_prev; }
+
+    node_type* head() { return m_head; }
+    const node_type* head() const { return m_head; }
+    node_type* tail() { return m_tail; }
+    const node_type* tail() const { return m_tail; }
 
     node_type* find(const_reference value)
     {
@@ -219,6 +231,22 @@ public:
         }
     }
 
+public:
+    bool is_less(const_reference lhs, const_reference rhs) const
+    {
+        return m_less(lhs, rhs);
+    }
+
+    bool is_less_or_equal(const_reference lhs, const_reference rhs) const
+    {
+        return !m_less(rhs, lhs);
+    }
+
+    bool is_equal(const_reference lhs, const_reference rhs) const
+    {
+        return !(m_less(lhs, rhs) || m_less(rhs, lhs));
+    }
+
 private:
     allocator_type m_alloc;
     level_type m_levels;
@@ -226,7 +254,139 @@ private:
     node_type* m_head;
     node_type* m_tail;
     compare m_less;
-};
+
+}; // sl_impl
+
+template <typename SkipList>
+class sl_iterator
+{
+private:
+    friend class sl_const_iterator<SkipList>;
+public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = typename SkipList::value_type;
+    // using difference_type = size_t;
+    using pointer = typename SkipList::pointer;
+    using const_pointer = typename SkipList::const_pointer;
+    using reference = typename SkipList::reference;
+    using const_reference = typename SkipList::const_reference;
+
+private:
+    using node_type = typename SkipList::node_type;
+    using self_type = sl_iterator<SkipList>;
+
+public:
+    explicit sl_iterator(node_type* node)
+        : m_node(node)
+    { }
+
+    self_type& operator++()
+    {
+        m_node = m_node->m_next[0];
+        return *this;
+    }
+    self_type operator++(int)
+    {
+        self_type tmp(*this);
+        m_node = m_node->m_next[0];
+        return tmp;
+    }
+
+    self_type &operator--()
+    {
+        m_node = m_node->m_prev;
+        return *this;
+    }
+    self_type operator--(int)
+    {
+        self_type tmp(*this);
+        m_node = m_node->m_prev;
+        return tmp;
+    }
+
+    const_reference operator*()  { return m_node->m_value; }
+    const_pointer   operator->() { return m_node->m_value; }
+
+    bool operator==(const self_type& other) const
+    {
+        return m_node == other.m_node;
+    }
+    bool operator!=(const self_type& other) const
+    {
+        return !operator==(other);
+    }
+
+private:
+    node_type* m_node;
+
+}; // sl_iterator
+
+
+template <typename SkipList>
+class sl_const_iterator
+{
+public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = typename SkipList::value_type;
+    // using difference_type = size_t;
+    using pointer = typename SkipList::pointer;
+    using const_pointer = typename SkipList::const_pointer;
+    using reference = typename SkipList::reference;
+    using const_reference = typename SkipList::const_reference;
+
+private:
+    using node_type = typename SkipList::node_type;
+    using self_type = sl_const_iterator<SkipList>;
+
+public:
+    explicit sl_const_iterator(node_type* node)
+        : m_node(node)
+    { }
+
+    sl_const_iterator(sl_iterator<SkipList>& it)
+        : m_node(it.m_node)
+    { }
+
+    self_type& operator++()
+    {
+        m_node = m_node->m_next[0];
+        return *this;
+    }
+    self_type operator++(int)
+    {
+        self_type tmp(*this);
+        m_node = m_node->m_next[0];
+        return tmp;
+    }
+
+    self_type &operator--()
+    {
+        m_node = m_node->m_prev;
+        return *this;
+    }
+    self_type operator--(int)
+    {
+        self_type tmp(*this);
+        m_node = m_node->m_prev;
+        return tmp;
+    }
+
+    const_reference operator*()  { return m_node->m_value; }
+    const_pointer   operator->() { return m_node->m_value; }
+
+    bool operator==(const self_type& other) const
+    {
+        return m_node == other.m_node;
+    }
+    bool operator!=(const self_type& other) const
+    {
+        return !operator==(other);
+    }
+
+private:
+    node_type* m_node;
+
+}; // sl_const_iterator
 
 } // namespace internal
 

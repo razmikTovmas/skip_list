@@ -19,3 +19,4 @@ jobs:
     - name: Run examples
       run: |
         ./build/examples/Basic
+        ./build/examples/SLExample

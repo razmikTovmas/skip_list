@@ -31,7 +31,10 @@ int main()
             std::cout << " is not found "<< std::endl;
         }
     }
+    std::cout << __LINE__ << std::endl;
     sl.dump();
+    std::cout << __LINE__ << std::endl;
+
     sl.remove_all();
     std::cout << "Size: " << sl.size() << std::endl;
 
