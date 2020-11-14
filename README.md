@@ -1,11 +1,12 @@
 # skip_list
 
+![Workflow Badge](https://github.com/razmikTovmas/skip_list/workflows/Build/badge.svg)
+
 A skip list data structure. [Wiki](https://en.wikipedia.org/wiki/Skip_list)
 
 ## How to Build
 
 ```
-mkdir ./build
 cd ./build
 cmake ..
 make -j <job count>
