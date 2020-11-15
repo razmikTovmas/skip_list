@@ -31,9 +31,15 @@ int main()
             std::cout << " is not found "<< std::endl;
         }
     }
-    std::cout << __LINE__ << std::endl;
+
+
+    std::cout << " Printing " << std::endl;
+    for (auto* it = sl.head(); it != sl.tail(); it = it->m_next[0]) {
+        std::cout << it->m_value << " <= " << std::flush;
+    }
+    std::cout << std::endl;
+
     sl.dump();
-    std::cout << __LINE__ << std::endl;
 
     sl.remove_all();
     std::cout << "Size: " << sl.size() << std::endl;

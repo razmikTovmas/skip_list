@@ -119,16 +119,32 @@ public:
         node_type* curr = m_head;
         for (level_type level = m_levels + 1; level > 0; ) {
             --level;
-            while ((curr->m_next[level] != m_tail) && m_less(curr->m_next[level]->m_value, value)) {
+            while ((curr->m_next[level] != m_tail) &&
+                    !is_equal(curr->m_value, value) &&
+                    is_less_or_equal(curr->m_next[level]->m_value, value)) {
                 curr = curr->m_next[level];
             }
         }
-        return curr->m_next[0];
+        return curr;
     }
 
     const node_type* find(const_reference value) const
     {
         return const_cast<sl_impl*>(this)->find(value);
+    }
+
+    node_type* find_first(const value_type& value)
+    {
+        node_type* node = find(value);
+        if (!is_equal(node->m_value, value)) {
+            node = node->m_next[0];
+        }
+        return node;
+    }
+
+    const node_type* find_first(const_reference value) const
+    {
+        return const_cast<sl_impl*>(this)->find_first(value);
     }
 
     [[nodiscard]] bool toss_a_coin() const
@@ -220,11 +236,11 @@ public:
     void dump() const
     {
         for (level_type level = 0; level <= m_levels; ++level) {
-            std::cout << "L" << level << ": ";
+            std::cout << "L" << level << ": " << std::flush;
             node_type* curr = m_head->m_next[level];
-            std::cout << m_head->m_value << " -> ";
+            std::cout << m_head->m_value << " -> "<< std::flush;
             while (curr != m_tail) {
-                std::cout << curr->m_value << "(" << curr->m_prev->m_value << ") -> ";
+                std::cout << curr->m_value << "(" << curr->m_prev->m_value << ") -> "<< std::flush;
                 curr = curr->m_next[level];
             }
             std::cout << m_tail->m_value << "(" << m_tail->m_prev->m_value << ")" << std::endl;
@@ -237,9 +253,19 @@ public:
         return m_less(lhs, rhs);
     }
 
+    bool is_great(const_reference lhs, const_reference rhs) const
+    {
+        return m_less(rhs, lhs);
+    }
+
     bool is_less_or_equal(const_reference lhs, const_reference rhs) const
     {
         return !m_less(rhs, lhs);
+    }
+
+    bool is_great_or_equal(const_reference lhs, const_reference rhs) const
+    {
+        return !m_less(lhs, rhs);
     }
 
     bool is_equal(const_reference lhs, const_reference rhs) const
@@ -260,10 +286,8 @@ private:
 template <typename SkipList>
 class sl_iterator
 {
-private:
-    friend class sl_const_iterator<SkipList>;
 public:
-    using iterator_category = std::forward_iterator_tag;
+    using iterator_category = std::bidirectional_iterator_tag;
     using value_type = typename SkipList::value_type;
     // using difference_type = size_t;
     using pointer = typename SkipList::pointer;
@@ -316,6 +340,15 @@ public:
         return !operator==(other);
     }
 
+    /**
+     * @brief Get pointer to the current node
+     * @internal
+     */
+    node_type* get_node() const
+    {
+        return m_node;
+    }
+
 private:
     node_type* m_node;
 
@@ -326,7 +359,7 @@ template <typename SkipList>
 class sl_const_iterator
 {
 public:
-    using iterator_category = std::forward_iterator_tag;
+    using iterator_category = std::bidirectional_iterator_tag;
     using value_type = typename SkipList::value_type;
     // using difference_type = size_t;
     using pointer = typename SkipList::pointer;
@@ -344,7 +377,7 @@ public:
     { }
 
     sl_const_iterator(sl_iterator<SkipList>& it)
-        : m_node(it.m_node)
+        : m_node(it.get_node())
     { }
 
     self_type& operator++()
@@ -381,6 +414,15 @@ public:
     bool operator!=(const self_type& other) const
     {
         return !operator==(other);
+    }
+
+    /**
+     * @brief Get pointer to the current node
+     * @internal
+     */
+    node_type* get_node() const
+    {
+        return m_node;
     }
 
 private:
