@@ -179,6 +179,26 @@ void sl_impl<T, C, A>::dump() const
     }
 }
 
+template <class T, class C, class A>
+void sl_impl<T, C, A>::pretty_dump() const
+{
+
+    for (level_type level = m_levels + 1; level > 0; ) {
+        --level;
+        std::cout << "L" << level << ": ";
+        for (node_type* curr = m_head->m_next[0]; curr != m_tail; curr = curr->m_next[0]) {
+            if (curr->m_level >= level) {
+                std::cout << "-->" << curr->m_value;
+            } else {
+                std::cout << "----";
+            }
+        }
+        std::cout << "--->tail" << std::endl;
+    }
+
+}
+
+
 } // namespace internal
 
 } // namespace skip_list

@@ -94,6 +94,7 @@ public:
     void remove_all();
 
     void dump() const;
+    void pretty_dump() const;
 
 public:
     bool is_less(const_reference lhs, const_reference rhs) const { return m_less(lhs, rhs); }
