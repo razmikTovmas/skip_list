@@ -30,52 +30,21 @@ public:
 
     using iterator                  = internal::sl_iterator<impl_type>;
     using const_iterator            = internal::sl_const_iterator<impl_type>;
-
+    using reverse_iterator          = std::reverse_iterator<iterator>;
+    using const_reverse_iterator    = std::reverse_iterator<const_iterator>;
 
     ///@{ @name Member functions
 
     ///@{ @name Constructors and destructor
 
-    explicit skip_list(const Allocator& alloc = Allocator())
-        : m_impl(alloc)
-    { }
-
+    explicit skip_list(const allocator_type& alloc = allocator_type());
     template <class InputIterator>
-    skip_list(InputIterator first, InputIterator last, const Allocator& alloc = Allocator())
-        : m_impl(alloc)
-    {
-        assign(first, last);
-    }
-
-    skip_list(const skip_list& other)
-        : m_impl(other.get_allocator())
-    {
-        assign(other.begin(), other.end());
-    }
-
-    skip_list(const skip_list& other, const Allocator& alloc)
-        : m_impl(alloc)
-    {
-        assign(other.begin(), other.end());
-    }
-
-    skip_list(skip_list&& other)
-        : m_impl(std::move(other.m_impl))
-    {
-
-    }
-
-    skip_list(skip_list&& other, const Allocator &alloc)
-        : m_impl(alloc)
-    {
-        assign(other.begin(), other.end());
-    }
-
-    skip_list(std::initializer_list<T> init, const Allocator& alloc = Allocator())
-        : m_impl(alloc)
-    {
-        assign(init.begin(), init.end());
-    }
+    skip_list(InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type());
+    skip_list(const skip_list& other);
+    skip_list(const skip_list& other, const allocator_type& alloc);
+    skip_list(skip_list&& other);
+    skip_list(skip_list&& other, const allocator_type &alloc);
+    skip_list(std::initializer_list<T> init, const allocator_type& alloc = allocator_type());
 
     ~skip_list() = default;
 
@@ -83,38 +52,13 @@ public:
 
     ///@{ @name Assignment
 
-    skip_list& operator=(const skip_list& other)
-    {
-        assign(other.begin(), other.end());
-        return *this;
-    }
-
-    skip_list& operator=(skip_list&& other)
-    {
-        clear();
-        m_impl = std::move(other.m_impl);
-        return *this;
-    }
-
-    skip_list& operator=(std::initializer_list<T> init)
-    {
-        assign(init.begin(), init.end());
-        return *this;
-    }
+    skip_list& operator=(const skip_list& other);
+    skip_list& operator=(skip_list&& other);
+    skip_list& operator=(std::initializer_list<T> init);
 
     template <typename InputIterator>
-    void assign(InputIterator first, InputIterator last)
-    {
-        clear();
-        while (first != last) {
-            insert(*first++);
-        }
-    }
-
-    void assign(std::initializer_list<T> init)
-    {
-        assign(init.begin(), init.end());
-    }
+    void assign(InputIterator first, InputIterator last);
+    void assign(std::initializer_list<T> init);
 
     ///@}
 
@@ -122,29 +66,10 @@ public:
 
     ///@{ @name Element access
 
-    reference front()
-    {
-        assert(!empty());
-        return m_impl.front()->m_value;
-    }
-
-    const value_type& front() const
-    {
-        assert(!empty());
-        return m_impl.front()->m_value;
-    }
-
-    reference back()
-    {
-        assert(!empty());
-        return m_impl.back()->m_value;
-    }
-
-    const value_type& back() const
-    {
-        assert(!empty());
-        return m_impl.back()->m_value;
-    }
+    reference front();
+    const value_type& front() const;
+    reference back();
+    const value_type& back() const;
 
     ///@}
 
@@ -158,6 +83,13 @@ public:
     const_iterator end() const      { return const_iterator(m_impl.tail()); }
     const_iterator cend() const     { return const_iterator(m_impl.tail()); }
 
+    reverse_iterator       rbegin()         { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const   { return const_reverse_iterator(end()); }
+    const_reverse_iterator crbegin() const  { return const_reverse_iterator(end()); }
+
+    reverse_iterator       rend()           { return reverse_iterator(begin()); }
+    const_reverse_iterator rend() const     { return const_reverse_iterator(begin()); }
+    const_reverse_iterator crend() const    { return const_reverse_iterator(begin()); }
     ///@}
 
     ///@{ @name Capacity
@@ -172,73 +104,23 @@ public:
 
     void clear() { m_impl.remove_all(); }
 
-    std::pair<iterator, bool> insert(const value_type& value)
-    {
-        node_type* node = m_impl.insert(value);
-        return std::make_pair(iterator(node), true);
-    }
+    std::pair<iterator, bool> insert(const value_type& value);
+    void insert(std::initializer_list<T> init);
 
-    void insert(std::initializer_list<T> init)
-    {
-        for (auto& val : init) {
-            m_impl.insert(val);
-        }
-    }
-
-    iterator erase(const value_type& value)
-    {
-        node_type* node = m_impl.find(value);
-        if (m_impl.is_equal(node->m_value, value)) {
-            node_type* next = node->m_next[0];
-            m_impl.remove(node);
-            return iterator(next);
-        }
-        return iterator(m_impl.tail());
-    }
+    iterator erase(const value_type& value);
 
     ///@}
 
     ///@{ @name Lookup
 
-    iterator find(const value_type& value)
-    {
-        node_type* node = m_impl.find(value);
-        if (m_impl.is_equal(node->value, value)) {
-            return iterator(node);
-        }
-        return iterator(m_impl.tail());
-    }
+    iterator find(const value_type& value);
+    const_iterator find(const value_type& value) const;
 
-    const_iterator find(const value_type& value) const
-    {
-        return const_iterator(const_cast<skip_list&>(this).find(value));
-    }
+    iterator lower_bound(const value_type& value);
+    const_iterator lower_bound(const value_type& value) const;
 
-    iterator lower_bound(const value_type& value)
-    {
-        return iterator(m_impl.find_first(value));
-    }
-
-    const_iterator lower_bound(const value_type& value) const
-    {
-        return const_iterator(const_cast<skip_list&>(this).lower_bound(value));
-    }
-
-    iterator upper_bound(const value_type& value)
-    {
-        node_type* node = m_impl.find_first(value);
-        if (node != m_impl.tail()) {
-            while (m_impl.is_less_or_equal(node->m_value, value)) {
-                node = node->m_next[0];
-            }
-        }
-        return iterator(node);
-    }
-
-    const_iterator upper_bound(const value_type& value) const
-    {
-        return const_iterator(const_cast<skip_list&>(this).upper_bound(value));
-    }
+    iterator upper_bound(const value_type& value);
+    const_iterator upper_bound(const value_type& value) const;
 
     ///@}
 
@@ -250,3 +132,6 @@ private:
 }; // skip_list
 
 } // namespace skip_list
+
+
+#include "_skip_list.hpp"
