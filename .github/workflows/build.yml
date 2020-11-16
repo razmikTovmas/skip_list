@@ -18,5 +18,4 @@ jobs:
         make -j 10
     - name: Run examples
       run: |
-        ./build/examples/Basic
-        ./build/examples/SLExample
+        ./build/examples/Example

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(skip_list VERSION 1.0.0 LANGUAGES CXX)
 option(console_BUILD_TESTS OFF)
 option(EXAMPLES "Build Examples" ON)
+option(UNIT_TESTS "Build Unit Tests" OFF)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -43,3 +44,6 @@ if (EXAMPLES)
   add_subdirectory(examples)
 endif()
 
+if (UNIT_TESTS)
+add_subdirectory(tests)
+endif()

@@ -126,6 +126,12 @@ public:
 
     ///@}
 
+public:
+    void pretty_dump() const
+    {
+        m_impl.pretty_dump();
+    }
+
 private:
     impl_type m_impl;
 

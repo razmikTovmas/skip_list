@@ -92,6 +92,9 @@ const typename sl_impl<T, C, A>::node_type* sl_impl<T, C, A>::find_first(const_r
 template <class T, class C, class A>
 typename sl_impl<T, C, A>::node_type* sl_impl<T, C, A>::insert(const value_type& value, node_type* hint)
 {
+    if (is_equal(find(value)->m_value, value)) {
+        return nullptr;
+    }
     const level_type node_level = random_level();
 
     node_type* new_node = new node_type(value, node_level);
@@ -130,9 +133,8 @@ void sl_impl<T, C, A>::remove(node_type* node)
     assert(m_tail != node);
 
     node->m_next[0]->m_prev = node->m_prev;;
-
     node_type* curr = m_head;
-    for (level_type level = m_levels + 1; level > 0;) {
+    for (level_type level = node->m_level + 1; level > 0;) {
         --level;
         assert(level <= curr->m_level);
         while (curr->m_next[level] != m_tail && m_less(curr->m_next[level]->m_value, node->m_value)) {
@@ -193,7 +195,7 @@ void sl_impl<T, C, A>::pretty_dump() const
                 std::cout << "----";
             }
         }
-        std::cout << "--->tail" << std::endl;
+        std::cout << "-->tail" << std::endl;
     }
 
 }

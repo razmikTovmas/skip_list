@@ -120,7 +120,7 @@ template <class T, class C, class A>
 std::pair<typename skip_list<T, C, A>::iterator, bool> skip_list<T, C, A>::insert(const value_type& value)
 {
     node_type* node = m_impl.insert(value);
-    return std::make_pair(iterator(node), true);
+    return std::make_pair(iterator(node), (nullptr != node));
 }
 
 template <class T, class C, class A>
@@ -147,7 +147,7 @@ template <class T, class C, class A>
 typename skip_list<T, C, A>::iterator skip_list<T, C, A>::find(const value_type& value)
 {
     node_type* node = m_impl.find(value);
-    if (m_impl.is_equal(node->value, value)) {
+    if (m_impl.is_equal(node->m_value, value)) {
         return iterator(node);
     }
     return iterator(m_impl.tail());
